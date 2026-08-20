@@ -626,6 +626,8 @@ def import_results():
             query = 'INSERT INTO Results(assessment_id, employee_id, manager_id, date_taken, score ) VALUES (?,?,?,?,?)'
             values = (cs_assessment_id, cs_employee_id, cs_manager_id, cs_date_taken, cs_score)
             cursor.execute(query, values)
+            print('''
+    Results have been imported.''')
         connection.commit()    
             
 # initial menu for manager type users.
@@ -1187,16 +1189,10 @@ def check_role(logged_in_user):
 
 
 
-# create_schema()
+# # create_schema()
 new_user = Users('','','','','','','','','')
 
 login_screen(new_user)
-
-
-
-
-
-
 
 
 

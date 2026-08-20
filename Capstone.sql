@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS Users(
     password TEXT,
     phone TEXT,
     date_hired TEXT,
-    user_created_date TEXT,
+    user_created_date TEXT, 
     user_type INTEGER DEFAULT 0,
     user_active INTEGER DEFAULT 1
 );
@@ -43,3 +43,9 @@ CREATE TABLE IF NOT EXISTS Results(
 );
 
 PRAGMA foreign_keys = ON;
+
+ALTER TABLE Compentencies 
+RENAME Competencies;
+
+ALTER TABLE Assessments 
+RENAME COLUMN compentency_id TO competency_id;

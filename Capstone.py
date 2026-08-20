@@ -7,6 +7,8 @@ cursor = connection.cursor()
 
 # importing password encrypting
 import bcrypt
+import csv
+
 
 class Assessments():
     def __init__(self,assessment_id, compentency_id, name):
@@ -15,12 +17,16 @@ class Assessments():
         self.name = name
         self.date_created = datetime.now().strftime('%x')
 
+
+# takes changes to information and updates it within the database.
     def save_assessment(self):
             cursor.execute('UPDATE Assessments SET compentency_id = ?, name = ?, date_created = ? WHERE assessment_id = ?', (self.compentency_id, self.name, self.date_created, self.assessment_id))
             connection.commit()
             input('''
     Your information has been updated, Thank you.''')
-            
+
+
+       # pulls information from the database and loads it into code to view or manipulate. 
     def load_assessment(self, assessment_id = 0):
         if assessment_id == 0:
             assessment_id = int(input('''
@@ -34,12 +40,13 @@ class Assessments():
                 self.date_created = results[3]
             else:
                 input('''
-    Please provide correct ID.''')   
+    Incorrect ID.''')   
                 
                 
-
+# Sub menu to allow manager to edit specific information within an assessment. Edits fields from a selected record.
     def edit_assessments(self):
         available_ids = cursor.execute('SELECT assessment_id FROM Assessments').fetchall()  
+# This function will verify that the provided ID does exist before loading in using the load function. 
         if (self.assessment_id, ) in available_ids:
             while True:
                 edit_what_info = input('''
@@ -62,7 +69,7 @@ class Assessments():
                             break
                         else:
                             input('''
-    This Compentency ID does not exist. Please try again.''')
+    This Compentency ID does not exist.''')
                             break 
                 if edit_what_info == '2':
                     edit_assessment_name = input('''
@@ -75,19 +82,16 @@ class Assessments():
                 if edit_what_info == '3':
                     break    
         
-
+# Object class for Competencies table.
 class Compentencies():
     def __init__(self, compentency_id, name):
         self.compentency_id = compentency_id
         self.name = name
         self.date_created = datetime.now().strftime('%x')
 
+# Allows manager to update Competency name aftering verifying its existence using its ID. User cannot change the creation date within the table.
     def edit_compentency_info(self):
 
-        # while True:
-    #         edit_compentency = int(input('''
-    # Please Provide Compentency ID:
-    # >> '''))
         available_ids = cursor.execute('SELECT compentency_id FROM Compentencies').fetchall()  
         if (self.compentency_id, ) in available_ids:
             new_compentency_name = input('''
@@ -100,9 +104,9 @@ class Compentencies():
         
         else:
             input('''
-    This ID does not exist. Please try again.''')   
+    This ID does not exist. ''')   
                  
-                
+# Selects requested records from  Competencies table in the database to read and or manipulate. 
     def load_compentency(self, compentency_id = 0):    
         if compentency_id == 0:
             compentency_id = int(input('Provide Compentency ID here: '))
@@ -113,30 +117,30 @@ class Compentencies():
             self.name = results[1]
             self.date_created = results[2]
 
-
+# Takes selected changes and uploads them into Compentencies table.
     def save_compentency(self):
         cursor.execute('UPDATE Compentencies SET name = ?, date_created = ? WHERE compentency_id = ?', (self.name, self.date_created, self.compentency_id))
         connection.commit()
         input('''
         Your information has been saved.''')
     
-
+#  Objects class for Results table.
 class Results():
     def __init__(self, result_id, assessment_id, employee_id, manager_id,date_taken,score):
         self.result_id = result_id
         self.assessment_id = assessment_id
-        self.employee_id = employee_id
+        self.id = employee_id
         self.manager_id = manager_id
         self.date_taken = date_taken
         self.score = score
 
-
+# Takes changes to selected data and updates them into the Results table.
     def save_result(self):
-        cursor.execute('UPDATE Results SET assessment_id = ?, employee_id = ?, manager_id = ?, date_taken = ? score = ? WHERE result_id = ?', (self.assessment_id, self.employee_id, self.manager_id, self.date_taken, self.score, self.result_id))   
+        cursor.execute('UPDATE Results SET assessment_id = ?, employee_id = ?, manager_id = ?, date_taken = ? score = ? WHERE result_id = ?', (self.assessment_id, self.id, self.manager_id, self.date_taken, self.score, self.result_id))   
         connection.commit()
         input('''
     Your information has been updated, Thank you.''')
-
+# Takes information from selected records from the Results table and applies it to code to allow changes and modifications
     def load_result(self, result_id = 0):
             if result_id == 0:
                 result_id = int(input('Provide Result ID here: '))
@@ -145,10 +149,25 @@ class Results():
                 results = cursor.execute('SELECT * FROM Results WHERE result_id = ?',(result_id, )).fetchone() 
                 self.result_id = results[0]
                 self.assessment_id_id = results[1]
-                self.employee_id = results[2]
+                self.id = results[2]
                 self.manager_id = results[3]
                 self.date_taken = results[4]
                 self.score = results[5]
+
+    def delete_results(self):       
+            available_ids = cursor.execute('SELECT result_id FROM Results').fetchall()  
+            if (self.result_id, ) in available_ids: 
+                delete_this_one = self.result_id                             
+                while True:
+                    cursor.execute('DELETE FROM Results WHERE result_id = ?',(delete_this_one,))
+                    connection.commit()
+                    input('''
+        Result has been deleted.''')
+                    break
+            else:
+                input('''
+        This Result ID does not exist.''')        
+
 
     def edit_results(self):       
         available_ids = cursor.execute('SELECT result_id FROM Results').fetchall()  
@@ -178,7 +197,7 @@ class Results():
                             break
                         else:
                             input('''
-    This assessment ID does not exist. Please try again.''')  
+    This assessment ID does not exist.''')  
                         break  
                 elif edit_what_result == '2':
                     while True:
@@ -194,7 +213,7 @@ class Results():
                             break
                         else:
                             input('''
-    This Employee ID does not exist. Please try again.''')
+    This Employee ID does not exist.''')
                             break 
                 elif edit_what_result == '3':
                     while True:
@@ -210,7 +229,7 @@ class Results():
                             break
                         else:
                             input('''
-    This Manager ID does not exist. Please try again.''')
+    This Manager ID does not exist.''')
                             break 
                 
                 elif edit_what_result == '4':
@@ -240,12 +259,12 @@ class Results():
                     break                                                               
                 else:
                     input('''
-    We do not recogniize this result ID. Please try again.''')  
+    We do not recogniize this result ID.''')  
                     break                                                                          
             connection.commit()                        
         else:
             input('''
-    This ID does not exist. Please try again.''')  
+    This ID does not exist.''')  
 class Users:
     def __init__(self, employee_id, first_name, last_name, email, password, phone, date_hired, user_type, user_active):
         self.id = employee_id
@@ -260,12 +279,11 @@ class Users:
         self.user_active = user_active
 
     def change_password(self):
-        while True:
             
             old_password = input('''
     Current Password:
-    ''')
-            if old_password == bcrypt.checkpw(old_password.encode('utf-8'), self.password):
+    >> ''')
+            if bcrypt.checkpw(old_password.encode('utf-8'), self.password):
                 new_password = input('New Password:\n\n>> ')
                 self.password =  bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
                 input('''
@@ -273,66 +291,62 @@ class Users:
     ''')
             else:
                 input('''
-    This password is incorrect.
-        Please provide the correct password:''')    
-                break
+    This password is incorrect. ''')    
+                
 
     def edit_own_information(self):
-            email_verify = input('''
-    Please enter your email below:
-    >> ''')
-                                          
-            user_id = cursor.execute('SELECT employee_id FROM Users WHERE email = ?', (email_verify,)).fetchone()
-            if user_id:
-                self.load_user(user_id[0])
                 verify_self = input('''
     Please verify identity by providing password below:
     >> ''')
                 
-                if verify_self == bcrypt.checkpw(verify_self.encode('utf-8'), self.password):              
+                if bcrypt.checkpw(verify_self.encode('utf-8'), self.password):              
+                    while True:
                         choose_employee_update = input('''
     Select from the following to update employee information.
         1.) First name
         2.) Last name
         3.) Email
         4.) Phone
-        5.) Quit and return to previous menu''')
+        5.) Quit and return to previous menu
+        >> ''')
                         
                         if choose_employee_update == '1':
                             new_first_name = input('''
     Provide First Name here.
-        >> ''')
-                            cursor.execute('UPDATE Users SET first_name = ? WHERE employee_id = ?',(new_first_name, self.employee_id))
-                        if choose_employee_update == '2':
+    >> ''')
+                            cursor.execute('UPDATE Users SET first_name = ? WHERE employee_id = ?',(new_first_name, self.id))
+                            connection.commit()   
+                        elif choose_employee_update == '2':
                             new_last_name = input('''
     Provide Last Name here.
-        >> ''')
-                            cursor.execute('UPDATE Users SET last_name = ? WHERE employee_id = ?',(new_last_name, self.employee_id))
-                        if choose_employee_update == '3':
+    >> ''')
+                            cursor.execute('UPDATE Users SET last_name = ? WHERE employee_id = ?',(new_last_name, self.id))
+                            connection.commit()   
+                        elif choose_employee_update == '3':
                             new_email = input('''
     Provide Email here.
-        >> ''')
-                            cursor.execute('UPDATE Users SET email = ? WHERE employee_id = ?',(new_email, self.employee_id))        
-                        if choose_employee_update == '4':
+    >> ''')
+                            cursor.execute('UPDATE Users SET email = ? WHERE employee_id = ?',(new_email, self.id))  
+                            connection.commit()      
+                        elif choose_employee_update == '4':
                             new_phone = input('''
     Provide Phone Number here.
-        >> ''')
-                            cursor.execute('UPDATE Users SET phone = ? WHERE employee_id = ?',(new_phone, self.employee_id))            
-
-                              
-            else:
-                 input('''
-    We coud not find an account with this email and password.
-        Please try again.''')
-             
+    >> ''')
+                            cursor.execute('UPDATE Users SET phone = ? WHERE employee_id = ?',(new_phone, self.id))   
+                            connection.commit()         
+                        elif choose_employee_update == '5':
+                            input('''
+    Returning to main menu. ''')
+                            break
+                    
+                else:
+                    input('''
+    This password is incorrect.''')                   
     def edit_employee_info(self):
-        which_employee = int(input('''
-    Please enter the ID for the selected Employee.
-    >> '''))
-        available_ids = cursor.execute('SELECT employee_id FROM Users').fetchall()  
-        if (which_employee, ) in available_ids:   
-            while True:
-                choose_employee_update = input('''
+        while True:
+            available_ids = cursor.execute('SELECT employee_id FROM Users').fetchall()  
+            if (self.id,) in available_ids:   
+                    choose_employee_update = input('''
     Select from the following to update employee information.
         1.) First name
         2.) Last name
@@ -345,71 +359,76 @@ class Users:
 
         7.) Quit and return to previous menu.    
         >>    ''')    
-                if choose_employee_update == '1':
-                    new_first_name = input('''
+                    if choose_employee_update == '1':
+                        new_first_name = input('''
     Provide First Name here.
-        >> ''')
-                    cursor.execute('UPDATE Users SET first_name = ? WHERE employee_id = ?',(new_first_name, self.employee_id))
-
-                    connection.commit()
-                    input('''
+    >> ''')
+                        cursor.execute('UPDATE Users SET first_name = ? WHERE employee_id = ?',(new_first_name, self.id))
+                        connection.commit()
+                        input('''
     Entry has been saved.''')                    
-                if choose_employee_update == '2':
-                    new_last_name = input('''
+                    if choose_employee_update == '2':
+                        new_last_name = input('''
     Provide Last Name here.
-        >> ''')
-                    cursor.execute('UPDATE Users SET last_name = ? WHERE employee_id = ?',(new_last_name, self.employee_id))
+    >> ''')
+                        cursor.execute('UPDATE Users SET last_name = ? WHERE employee_id = ?',(new_last_name, self.id))
 
-                    connection.commit()
-                    input('''
+                        connection.commit()
+                        input('''
     Entry has been saved.''')                    
-                if choose_employee_update == '3':
-                    new_email = input('''
+                    if choose_employee_update == '3':
+                        new_email = input('''
     Provide Email here.
-        >> ''')
-                    cursor.execute('UPDATE Users SET email = ? WHERE employee_id = ?',(new_email, self.employee_id))
+    >> ''')
+                        cursor.execute('UPDATE Users SET email = ? WHERE employee_id = ?',(new_email, self.id))
 
-                    connection.commit()
-                    input('''
+                        connection.commit()
+                        input('''
     Entry has been saved.''')                            
-                if choose_employee_update == '4':
-                    new_phone = input('''
+                    if choose_employee_update == '4':
+                        new_phone = input('''
     Provide Phone Number here.
-        >> ''')
-                    cursor.execute('UPDATE Users SET phone = ? WHERE employee_id = ?',(new_phone, self.employee_id))   
-
-                    connection.commit()
-                    input('''
-    Entry has been saved.''')
-                if choose_employee_update == '5':
-                    new_hire_date = input('''
-    Provide Hire Date here.
-        >> ''')
-                    cursor.execute('UPDATE Users SET hire_date = ? WHERE employee_id = ?',(new_hire_date, self.employee_id))
-
-                    connection.commit()
-                    input('''
-    Entry has been saved.''')                           
-                if choose_employee_update == '6':
-                    hire_type = input('''
-    Provide Employee type.
-        1 for manager, 0 for employee.
-        >> ''')
-                    if hire_type in ['0', '1']:
-                        cursor.execute('UPDATE Users SET user_type = ? WHERE employee_id = ?',(hire_type, self.employee_id))   
-            
+    >> ''')
+                        cursor.execute('UPDATE Users SET phone = ? WHERE employee_id = ?',(new_phone, self.id))   
 
                         connection.commit()
                         input('''
     Entry has been saved.''')
-                        break
-                    else:
+                    if choose_employee_update == '5':
+                        new_hire_date = input('''
+    Provide Hire Date here.
+    >> ''')
+                        cursor.execute('UPDATE Users SET date_hired = ? WHERE employee_id = ?',(new_hire_date, self.id))
+
+                        connection.commit()
                         input('''
-    Entry must be 1 for Manager or 0 for employee. Please try again.''')
-                        break
-                if choose_employee_update == '7':
+    Entry has been saved.''')                           
+                    if choose_employee_update == '6':
+                        hire_type = input('''
+    Provide Employee type.
+        1 for manager: 
+        0 for employee:
+        >> ''')
+                        if hire_type in ['0', '1']:
+                            cursor.execute('UPDATE Users SET user_type = ? WHERE employee_id = ?',(hire_type, self.id))   
+            
+
+                            connection.commit()
+                            input('''
+    Entry has been saved.''')
+                            break
+                        else:
+                            input('''
+    Entry must be 1 for Manager or 0 for employee.''')
+                            break
+                    if choose_employee_update == '7':
+                        input('''
+    Returning to main menu.''')
                     break
-           
+            else:
+                input('''
+    This employee ID does not exist.''')  
+                break 
 
 
     def update_email(self):
@@ -420,18 +439,20 @@ class Users:
                 self.email = new_email 
             else:
                 input('''
-    Please provide the correct current email address.''')    
+    This email is incorrect.''')    
                 break            
 
-# you have to load before saving, remember that
+
     def load_user(self, employee_id = 0):
             if employee_id == 0:
                 employee_id = int(input('''
-    Provide Employee ID here: '''))
+    Provide Employee ID here: 
+    >> '''))
+                
             available_ids = cursor.execute('SELECT employee_id FROM Users').fetchall()
-            if (employee_id, ) in available_ids:               
+            if (employee_id,) in available_ids:               
                 results = cursor.execute('SELECT * FROM Users WHERE employee_id = ?',(employee_id, )).fetchone() 
-                self.employee_id = results[0]
+                self.id = results[0]
                 self.first_name = results[1]
                 self.last_name = results[2]
                 self.email = results[3]
@@ -471,7 +492,7 @@ WHERE u.employee_id = ?
               AND a2.compentency_id = c.compentency_id
         )
       )
-ORDER BY c.compentency_id;''', (self.employee_id, )).fetchall()
+ORDER BY c.compentency_id;''', (self.id, )).fetchall()
             print(f'''
                         {len(query)} Results Found
                     ------------------------------------''')
@@ -484,7 +505,8 @@ ORDER BY c.compentency_id;''', (self.employee_id, )).fetchall()
     Date Taken:  {row[5]}
             ''')
                         
-            input('Returning to menu.')
+            input('''
+    Returning to menu.''')
             break
 
 
@@ -496,93 +518,37 @@ ORDER BY c.compentency_id;''', (self.employee_id, )).fetchall()
 
    
 
-#  Will need save method for assessments, compentencies, and results   # 
 
-
-
-    def login_screen(self):
-        while True:
-            login = input('''
-    Employee Aptitude Login:
-          Please enter your email below:
-          >>  ''')
-            user_id = cursor.execute('SELECT employee_id FROM Users WHERE email = ?', (login,)).fetchone()
-            if user_id:
-                self.load_user(user_id[0])
-                enter_pwd = input(''' 
-          Please enter your password below:
-          >>  ''')
-                if bcrypt.checkpw(enter_pwd.encode('utf-8'), self.password):
-                    print('woo youre in')
-                    self.check_role()
-            else:
-                input('''
-    We could not find an account with this email.
-          Please try again.
-         
-     ''')
-
-# checks if employee is a manager or not
-    def check_role(self):
-        if self.user_type == 1:
-            print('Youre a manager')
-            manager_menu()
-        elif self.user_type == 0:
-            print('youre an employee')
-            self.employee_menu()    
 
     def employee_menu(self):  
         print(f"""
-            You have been successfully logged into your Employee Account.""")
+    You have successfully logged into your Employee Account.""")
         while True:
         
             search_input = input("""
-            Select from the following actions below:
-                V: View scores by Compentencies.
-                E: Edit personal information.
-                P: Change Password.
-                Q: Quit
-                >>  """).upper()   
+    Select from the following actions below:
+        V: View scores by Compentencies.
+        E: Edit personal information.
+        P: Change Password.
+        Q: Quit
+        >>  """).upper()   
             if search_input == 'V':
                 self.load_own_results()
             if search_input == 'E':  
                 self.edit_own_information() 
             if search_input == 'P':
                 self.change_password()
+            else:
+                input('''
+    Logging out. ''')    
+                break
                
-# Menu that appears for non-management employees.
-
-
-             
-# # add employee menu screen 
-# menu will include viewing all user information
-# editing user information. 
-#     password,,, email,,, phone,, 
-# view personal compentencies and results from tests taken.
-
-# Menu that appears for management.
-
-
-
-# menu after manager selects to search on database.---------------------------------------------------------
-                
-
-# menu after manager selects to add to database------------------------------------------------------------
-
-
-
-# with viewing employees after menu, ask yes or no to also viewing their compentencies
-    
-
-
-        # create 4 menu screens for searching, viewing, editting, adding
-
 
     
     def add_user(self):
         query = 'INSERT INTO Users (first_name, last_name, email, password, phone, date_hired, user_created_date, user_type, user_active) VALUES (?,?,?,?,?,?,?,?,?)'
         values = (self.first_name, self.last_name, self.email, self.password, self.phone, self.date_hired, self.user_created_date, self.user_type, self.user_active)
-        self.employee_id = cursor.lastrowid
+        self.id = cursor.lastrowid
         cursor.execute(query, values)
         connection.commit()
 
@@ -595,20 +561,22 @@ def add_result():
     while True:
         input_assessment_id = int(input('''
 To add a result to the database, please provide the following information.
-    Assessment ID: '''))
-        print(f'{available_ids}')
-        print(f'{input_assessment_id, }')
+    Assessment ID:
+    >> '''))
         if (input_assessment_id, ) in available_ids:
             available_ids = cursor.execute('SELECT employee_id FROM Users').fetchall() 
             input_employee_id = int(input('''
-    Employee ID: '''))
+    Employee ID: 
+    >> '''))
             if (input_employee_id, ) in available_ids:
                 available_ids = cursor.execute('SELECT employee_id FROM Users WHERE user_type = "1" ').fetchall() 
                 input_manager_id = int(input('''
-    Assigning Manager ID:  '''))
+    Assigning Manager ID:
+    >> '''))
                 if (input_manager_id, ) in available_ids:
                     input_date_taken =  input('''
-    Date Assessment Was Taken: ''')
+    Date Assessment Was Taken: 
+    >> ''')
                     input_score = input('''
     Score of Assessment:
 
@@ -619,7 +587,7 @@ To add a result to the database, please provide the following information.
                         update_values = (input_assessment_id, input_employee_id, input_manager_id, input_date_taken, input_score)
                         cursor.execute(new_result, update_values)
                         input('''
-This entry has been saved.''')
+    This entry has been saved.''')
                         connection.commit()
                         break
                     else:
@@ -627,15 +595,37 @@ This entry has been saved.''')
     Score must be between 0 to 4.''')    
                 else:
                     print('''
-    Please provide the correct manager ID.''')
+    Manager ID is incorrect.''')
                     
             else:
                 print('''
-    Please provide the correct employee ID.''')  
+    Employee ID is incorrect.''')  
                  
         else:
             print('''
-Please provide correct assessment ID''')  
+    Assessment ID is incorrect.''')  
+
+
+def import_results():
+    
+
+
+
+    with open('capstone_results.csv', 'r') as read_file:
+        
+        for line in read_file.readlines():
+            split_line = line.split(',')
+            cs_result_id = split_line[0]
+            cs_assessment_id = split_line[1]
+            cs_employee_id = split_line[2]
+            cs_manager_id = split_line[3]
+            cs_date_taken = split_line[4]
+            cs_score = split_line[5]
+
+            query = 'INSERT INTO Results(assessment_id, employee_id, manager_id, date_taken, score ) VALUES (?,?,?,?,?)'
+            values = (cs_assessment_id, cs_employee_id, cs_manager_id, cs_date_taken, cs_score)
+            cursor.execute(query, values)
+        connection.commit()    
             
 
 def manager_menu():
@@ -650,6 +640,9 @@ def manager_menu():
         A: Add to database.
         V: View files from database.
         E: Edit files from database.
+        I: Import results.
+        X: Export compentency results.
+        Y: Export Employee results.
         Q: Quit
         >>  """).upper()
         if search_input == 'S':
@@ -660,10 +653,34 @@ def manager_menu():
             view_files_menu()
         if search_input == 'E':
             edit_files_menu()    
+        if search_input == 'I':
+            import_results()
+        if search_input == 'X':
+            export_compentency_results()
+        if search_input == 'Y': 
+            export_employee_results()       
         if search_input == 'Q':
-            input('You have been logged out.')   
+            input('''
+    You have been logged out.''')   
             break     
-                
+
+
+def export_employee_results():
+    query = search_one_set_results(is_export_employee_results=True)
+    with open('employee_results.csv', 'wt', newline='') as new_file:
+        field_names = ['First Name', 'Last Name', 'Competency', 'Assessment', 'Score', 'Date Taken'] 
+        writer = csv.writer(new_file)
+        writer.writerow(field_names)
+        writer.writerows(query)
+
+def export_compentency_results():
+    query = search_results_by_compentency(is_export_competency_results=True)
+    with open('competency_results.csv', 'wt', newline='') as new_file:
+        field_names = ['Competency', 'Assessment', 'Score', 'Result ID', 'Last Name', 'Last Name'] 
+        writer = csv.writer(new_file)
+        writer.writerow(field_names)
+        writer.writerows(query)
+                    
              
 def add_to_database_menu():
     while True:
@@ -677,7 +694,7 @@ def add_to_database_menu():
         R: Add a result to a completed assessment to employee file.
         E: Add an Employee.
         Q: Quit to Main Menu.
-    >>  ''').upper()
+        >>  ''').upper()
         if user_add == "C":
             add_compentency()
         if user_add == 'A':
@@ -717,15 +734,15 @@ def manager_search_files_menu():
 def view_files_menu():
     while True:
         user_view = input('''
-Select from below to view:
-    C: View Compentencies available.
-    A: View Assessments available.
-    S: View Select employees.
-    E: View all Employees.
-    R: View results from an Employee.
-    RS: View summary of results.
-    Q: Quit to Main Menu.
-    >>  ''').upper()
+    Select from below to view:
+        C: View Compentencies available.
+        A: View Assessments available.
+        S: View Select employees.
+        E: View all Employees.
+        R: View results from an Employee.
+        RS: View summary of results.
+        Q: Quit to Main Menu.
+        >>  ''').upper()
         if user_view == 'C':
             view_all_compentencies()
         if user_view == 'A':
@@ -742,25 +759,25 @@ Select from below to view:
             break     
 def add_employee():
     input_first_name = input('''
-To add Employee to database, please provide the following information.
+    To add Employee to database, please provide the following information.
 
-    First Name: ''')
+        First Name: ''')
     input_last_name = input('''
-    Last Name: ''')
+        Last Name: ''')
     input_email = input('''
-    Email: ''')
+        Email: ''')
     input_password = input(''' 
-    Password: ''')
+        Password: ''')
     input_phone = input('''
-    Phone Number: ''')
+        Phone Number: ''')
     input_date_hired = input('''
-    Hire Date: ''')
-    input_user_type = input('''
+        Hire Date: ''')
+    while True:
+        input_user_type = input('''
     Is this Employee a manager?
         0: Employee
         1: Manager  
-        ''')
-    while True:
+            ''')
         if input_user_type in ['0', '1']:
             new_password = bcrypt.hashpw(input_password.encode('utf-8'), bcrypt.gensalt())
             input_date_created = datetime.now().strftime('%x')
@@ -769,42 +786,46 @@ To add Employee to database, please provide the following information.
             cursor.execute(new_user, new_values)
             connection.commit()
             input('''
-Entry has been saved.''')
+    Entry has been saved.''')
+            break
         if input_user_type not in ['0', '1']:
             input('''
     Must be 0 for employee or 1 for Manager.''')
-            break
+        
         continue        
 
 
 def add_compentency():
     input_name_compentency = input('''
-To add a new compentency, please provide the following information. 
+    To add a new compentency, please provide the following information. 
 
-    Compentency Name: ''')
+        Compentency Name:
+        >> ''')
     date_created = datetime.now().strftime('%x')
     new_compentency = 'INSERT INTO Compentencies(name, date_created) VALUES (?,?)'
     new_values = (input_name_compentency, date_created)
     cursor.execute(new_compentency, new_values)
     input('''
-Entry has been saved.''')
+    Entry has been saved.''')
     connection.commit()
 
 def add_assessment():   
     available_ids = cursor.execute('SELECT compentency_id FROM Compentencies').fetchall() 
     while True:
         input_compentency_id = int(input('''
-To add an assessment to the database, please provide the following information.
-    Compentency ID: '''))
+    To add an assessment to the database, please provide the following information.
+        Compentency ID:
+        >> '''))
         if (input_compentency_id, ) in available_ids: 
             input_name_assessment =input('''
-    Name of Assessment: ''')
+        Name of Assessment:
+        >> ''')
             input_date_created = datetime.now().strftime('%x')
             new_assessment = "INSERT INTO Assessments(compentency_id, name, date_created) VALUES (?,?,?)"    
             new_values = (input_compentency_id, input_name_assessment, input_date_created)
             cursor.execute(new_assessment, new_values)
             input('''
-Entry has been saved. ''')
+    Entry has been saved. ''')
             break
         if (input_compentency_id, ) not in available_ids:
             input('''
@@ -814,21 +835,20 @@ Entry has been saved. ''')
 
 # creates tables in database
 
-
 def create_schema():
     with open('Capstone.sql' , 'r') as assignment_file:
         sql_command = assignment_file.read()
-        cursor.executescript(sql_command)        
+    cursor.executescript(sql_command)        
 
 def search_assessments():
     while True:
         manager_input = input('''
-Enter name of assessment needed:
-    >>  ''')
+    Enter name of assessment needed:
+        >>  ''')
         query = cursor.execute('SELECT * FROM Assessments WHERE name LIKE ?', ('%' + manager_input + '%', )).fetchall()
         print(f'''
     {len(query)} Assessments Found
-    -------------------------------''')
+-------------------------------''')
         if not query:
             input('Assessment not found.')
             break
@@ -840,17 +860,19 @@ Enter name of assessment needed:
     Compentency ID: {row[1]}
     Date Created:   {row[3]}
 ''')
+        input('''
+    Returning to menu.''')
         break 
 
 def search_employees():
     while True:
         manager_input = input('''
-Enter name of employee needed:
+    Enter name of employee needed:
     >>  ''')
         query = cursor.execute('SELECT * FROM Users WHERE first_name ||" " || last_name LIKE ? ORDER BY last_name', ('%' + manager_input + '%', )).fetchall();
         print(f'''
     {len(query)} Employees Found
-    ---------------------------------------''')
+---------------------------------------''')
         if not query:
             input('Employee not found.')
             break
@@ -864,7 +886,8 @@ Enter name of employee needed:
     Hire Date:      {row[6]}
 
 ''')
-        input('Returning to Menu.')
+        input('''
+    Returning to Menu.''')
         break
 
 def search_compentencies():
@@ -874,8 +897,8 @@ def search_compentencies():
     >>  ''')
         query = cursor.execute('SELECT * FROM  Compentencies WHERE name LIKE ? ORDER BY name', ('%' + search_input + '%', )).fetchall()
         print(f'''
-        {len(query)} Compentencies Found
-        -----------------------------------''')
+    {len(query)} Compentencies Found
+-----------------------------------''')
         if not query:
             input('Compentency not found.')
             break
@@ -891,32 +914,34 @@ def search_compentencies():
         break
 
 
-# 
+
         
-def search_results_by_compentency():
+def search_results_by_compentency(is_export_competency_results=False):
     while True:
             search_input = input('''
-    What compentency results are you looking for?
-        Compentency Name: ''')
+    Provide Competency name below to view associated results:
+    >> ''')
             query = cursor.execute('''SELECT c.name, a.name, r.score, r.result_id, e.last_name, e.first_name FROM Users e 
             JOIN Results r ON e.employee_id = r.employee_id 
             JOIN  Assessments a ON r.assessment_id = a.assessment_id
             JOIN Compentencies c ON a.compentency_id = c.compentency_id
             WHERE c.name LIKE  ?
             ORDER BY c.name''', (f'%{search_input}%',)).fetchall()
+            if is_export_competency_results:
+                return query
             print(f'''
-        {len(query)} Results Found
-        --------------------------------''')
+    {len(query)} Results Found
+--------------------------------''')
             if not query:
                 input('Results not found.')
                 break
             for row in query:
                 print(f'''
 
-        Compentency:  {row[0]}   
-        Assessment:   {row[1]}  Score:  {row[2]}
-        Taken By:     {row[4]}, {row[5]}
-        Result ID:    {row[3]}
+    Compentency:  {row[0]}   
+    Assessment:   {row[1]}  Score:  {row[2]}
+    Taken By:     {row[4]}, {row[5]}
+    Result ID:    {row[3]}
     ''')
             input('''
     Returning to menu.''')
@@ -924,11 +949,11 @@ def search_results_by_compentency():
 
 
 
-def search_one_set_results():
+def search_one_set_results(is_export_employee_results = False):
     while True:
         search_result = input(f'''
-        Enter Employee ID Below:
-        >> ''')
+    Enter Employee ID Below to view results from assciated person:
+    >> ''')
         query = cursor.execute('''SELECT
     u.first_name,
     u.last_name,
@@ -956,20 +981,22 @@ WHERE u.employee_id = ?
         )
       )
 ORDER BY c.compentency_id;''', (search_result, )).fetchall()
-
+        if is_export_employee_results:
+            return query
         print(f'''
-            {len(query)} Results Found
-        ------------------------------------''')
+    {len(query)} Results Found
+------------------------------------''')
         for row in query:
             print(f'''
 
-        Employee:    {row[1]}, {row[0]}
-        Assessment:  {row[3]} 
-        Compentency: {row[2]}       Score: {row[4]}
-        Date Taken:  {row[5]}
-                ''')
+    Employee:    {row[1]}, {row[0]}
+    Assessment:  {row[3]} 
+    Compentency: {row[2]}       Score: {row[4]}
+    Date Taken:  {row[5]}
+     ''')
             
-        input('Returning to menu.')
+        input('''
+    Returning to menu.''')
         break
 
 def view_all_compentencies():
@@ -979,11 +1006,11 @@ def view_all_compentencies():
       ''')
         query = cursor.execute('SELECT * From Compentencies ORDER BY name').fetchall()
         print(f'''
-        {len(query)} Compentencies Found
-    -------------------------------''')
+    {len(query)} Compentencies Found
+-------------------------------''')
         for row in query:
             print(f'''
-    
+
     Name:           {row[1]}     
     Compentency ID: {row[0]}               
     Date Created:   {row[2]}
@@ -996,21 +1023,21 @@ def view_all_compentencies():
 def view_all_employees():
     while True:
             input('''
-        To view all Employees press Enter:
+    To view all Employees press Enter:
           ''')
             query = cursor.execute('SELECT * From Users ORDER BY last_name').fetchall()
             print(f'''
-            {len(query)} Employees Found
-            ---------------------------------''')
+    {len(query)} Employees Found
+---------------------------------''')
             
             for row in query:
                 print(f'''
                
-               Name:           {row[2]}, {row[1]}
-               Employee ID:    {row[0]}
-               Email:          {row[3]}
-               phone:          {row[5]}
-               Hire Date:      {row[6]}''')
+    Name:           {row[2]}, {row[1]}
+    Employee ID:    {row[0]}
+    Email:          {row[3]}
+    phone:          {row[5]}
+    Hire Date:      {row[6]}''')
             input('''
         Returning to Menu''')
             break    
@@ -1045,16 +1072,16 @@ def view_all_results():
         ''', (select_compentency, )).fetchall()
 
         print(f'''
-        {len(query)} Results Found
-        ------------------------------------''')
+    {len(query)} Results Found
+------------------------------------''')
         for row in query:
             print(f'''
 
-        Compentency:{row[0]}       Score: {row[4]}
-        Assessment: {row[3]} 
-        Taken By: {row[2]}, {row[1]}
-        Date Taken: {row[5]}
-        ''')
+    Compentency:{row[0]}       Score: {row[4]}
+    Assessment: {row[3]} 
+    Taken By: {row[2]}, {row[1]}
+    Date Taken: {row[5]}
+    ''')
         break
 
 
@@ -1062,29 +1089,30 @@ def view_all_assessments():
     while True:
         query = cursor.execute('SELECT * FROM Assessments ORDER BY name').fetchall()
         print(f'''
-        {len(query)} Results Found
-        -------------------------------''')
+    {len(query)} Results Found
+-------------------------------''')
         for row in query:
             print(f'''
 
-        Assessment Name:    {row[2]}
-            Date Created:   {row[3]}
-            Assessment ID:  {row[0]}
-            Compentency ID: {row[1]}''')   
+    Assessment Name:    {row[2]}
+        Date Created:   {row[3]}
+        Assessment ID:  {row[0]}
+        Compentency ID: {row[1]}''')   
         input('''
-        Returning to Menu.''')     
+    Returning to Menu.''')     
         break
 
 def edit_files_menu():
     while True:
         edit_input = input('''
-Select from below to edit:
-    C: Edit from available Compentencies.
-    A: Edit available Assessments.
-    R: Edit Results from employees.
-    E: Edit employee information.
-    Q: Quit 
-    >>  ''').upper()
+    Select from below to edit:
+        C: Edit from available Compentencies.
+        A: Edit available Assessments.
+        R: Edit Results from employees.
+        E: Edit employee information.
+        D: Delete a Result.
+        Q: Quit 
+        >>  ''').upper()
         if edit_input == 'C':
             compentency_to_edit = Compentencies('', '')
             compentency_to_edit.load_compentency()
@@ -1101,6 +1129,10 @@ Select from below to edit:
             employee_to_edit = Users('', '', '', '', '', '', '', '', '')
             employee_to_edit.load_user()
             employee_to_edit.edit_employee_info()
+        if edit_input == 'D':
+            result_to_edit = Results('', '','', '', '', '' )  
+            result_to_edit.load_result()
+            result_to_edit.delete_results()
         if edit_input == 'Q':
             input('''
     Returning to menu.''')
@@ -1108,24 +1140,47 @@ Select from below to edit:
 
 
 
+def login_screen(logged_in_user):
+    while True:
+        login = input('''
+    Employee Aptitude Login:
+            Please enter your email below:
+            >>  ''')
+        user_id = cursor.execute('SELECT employee_id FROM Users WHERE email = ?', (login,)).fetchone()
+        user_id = user_id[0]
+        
+        if user_id:
+            print(user_id)
+            logged_in_user = Users('', '', '', '', '', '', '', '', '')
+            
+            logged_in_user.load_user(user_id)
+           
+         
+            enter_pwd = input(''' 
+    Please enter your password below:
+    >>  ''')
+            if bcrypt.checkpw(enter_pwd.encode('utf-8'), logged_in_user.password):
+                check_role(logged_in_user)
+            else:
+                input('''
+    This password is incorrect.''')   
+        else:
+            input('''
+    We could not find an account with this email. ''')
 
-
+def check_role(logged_in_user):
+        if logged_in_user.user_type == 1:
+            manager_menu()
+        elif logged_in_user.user_type == 0:
+           
+            logged_in_user.employee_menu()    
 
 # create_schema()
-# user3 = Users('','Joeseph', 'James', 'jonesjamenson@gmail.com', 'Pongoboiii', '555-465-2346', '05-22-25', 1, 1)
-# user3.add_user()
-# user3.save_user()
 new_user = Users('','','','','','','','','')
-# Users.load_user(new_user)
 
-new_user.login_screen()
-
-# (((USE JOIN)))
+login_screen(new_user)
 
 
-# select all from Results where user_id = blah
-
-# select name From users where 
 
 
 
